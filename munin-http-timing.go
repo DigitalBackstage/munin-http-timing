@@ -23,4 +23,5 @@ func main() {
 	fmt.Printf("Waiting: %v\n", info.Waiting)
 	fmt.Printf("Receiving: %v\n", info.Receiving)
 	fmt.Printf("Total: %v\n", info.Total)
+	fmt.Printf("Size: %v\n", info.Size)
 }

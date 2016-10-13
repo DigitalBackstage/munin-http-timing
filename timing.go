@@ -1,14 +1,17 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptrace"
 	"time"
 )
 
-// TimingInfo contains the different timings involved in sending
+const httpGetTimeout = time.Duration(20 * time.Second)
+
+// RequestInfo contains the different timings involved in sending
 // an HTTP request and its response
-type TimingInfo struct {
+type RequestInfo struct {
 	start                time.Time
 	dnsStart             time.Time
 	dnsDone              time.Time
@@ -22,67 +25,80 @@ type TimingInfo struct {
 	Waiting    time.Duration
 	Receiving  time.Duration
 	Total      time.Duration
+
+	Size int
 }
 
-// Start starts the timer
-func (t *TimingInfo) Start() {
+// RequestStart starts the timer
+func (t *RequestInfo) RequestStart() {
 	t.start = time.Now()
 }
 
 // ConnectDone sets the connection time
-func (t *TimingInfo) ConnectDone() {
+func (t *RequestInfo) ConnectDone() {
 	t.connectDone = time.Now()
 	t.Connecting = t.connectDone.Sub(t.dnsDone)
 }
 
 // WroteRequest sets the writing time
-func (t *TimingInfo) WroteRequest() {
+func (t *RequestInfo) WroteRequest() {
 	t.wroteRequest = time.Now()
 	t.Sending = t.wroteRequest.Sub(t.connectDone)
 }
 
 // GotFirstResponseByte sets the waiting time
-func (t *TimingInfo) GotFirstResponseByte() {
+func (t *RequestInfo) GotFirstResponseByte() {
 	t.gotFirstResponseByte = time.Now()
 	t.Waiting = t.gotFirstResponseByte.Sub(t.wroteRequest)
 }
 
-// End sets the receiving time
-func (t *TimingInfo) End() {
+// RequestDone sets the receiving time
+func (t *RequestInfo) RequestDone() {
 	t.Receiving = time.Now().Sub(t.gotFirstResponseByte)
 	t.Total = time.Now().Sub(t.start)
 }
 
 // DNSStart starts the resolution timer
-func (t *TimingInfo) DNSStart() {
+func (t *RequestInfo) DNSStart() {
 	t.dnsStart = time.Now()
 }
 
 // DNSDone sets the resolving time
-func (t *TimingInfo) DNSDone() {
+func (t *RequestInfo) DNSDone() {
 	t.dnsDone = time.Now()
 	t.Resolving = t.dnsDone.Sub(t.dnsStart)
 }
 
 // Ping gets an HTTP URL and returns the request timing information
-func Ping(url string) (info TimingInfo, err error) {
-	client := http.Client{}
+func Ping(url string) (info RequestInfo, err error) {
+	trace := getHTTPTrace(&info)
+	client := http.Client{
+		Timeout: httpGetTimeout,
+	}
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return
 	}
-
-	trace := getHTTPTrace(&info)
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), &trace))
 
-	info.Start()
-	_, err = client.Do(req)
-	info.End()
+	info.RequestStart()
+	response, err := client.Do(req)
+	info.RequestDone()
+	if err != nil {
+		return
+	}
 
+	info.Size, err = getResponseBodySize(response)
 	return
 }
 
-func getHTTPTrace(info *TimingInfo) httptrace.ClientTrace {
+func getResponseBodySize(r *http.Response) (int, error) {
+	body, err := ioutil.ReadAll(r.Body)
+	return len(body), err
+}
+
+func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 	return httptrace.ClientTrace{
 		DNSStart: func(dnsInfo httptrace.DNSStartInfo) {
 			info.DNSStart()
