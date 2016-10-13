@@ -2,49 +2,25 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"net/http/httptrace"
 	"os"
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) != 1 {
-		panic("Only one (required) argument: URL")
+	if len(os.Args) > 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s [config|autoconf]\n", os.Args[0])
+		os.Exit(1)
 	}
 
-	client := http.Client{}
-	req, err := http.NewRequest("GET", args[0], nil)
+	url := "http://example.com/"
+	info, err := Ping(url)
 	if err != nil {
 		panic(err)
 	}
 
-	times := TimingInfo{}
-
-	trace := &httptrace.ClientTrace{
-		ConnectDone: func(network, addr string, err error) {
-			times.ConnectDone()
-		},
-		WroteRequest: func(wr httptrace.WroteRequestInfo) {
-			times.WroteRequest()
-		},
-		GotFirstResponseByte: func() {
-			times.GotFirstResponseByte()
-		},
-	}
-
-	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
-
-	times.Start()
-	_, err = client.Do(req)
-	times.End()
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Connecting: %v\n", times.Connecting)
-	fmt.Printf("Sending: %v\n", times.Sending)
-	fmt.Printf("Waiting: %v\n", times.Waiting)
-	fmt.Printf("Receiving: %v\n", times.Receiving)
+	fmt.Printf("Resolving: %v\n", info.Resolving)
+	fmt.Printf("Connecting: %v\n", info.Connecting)
+	fmt.Printf("Sending: %v\n", info.Sending)
+	fmt.Printf("Waiting: %v\n", info.Waiting)
+	fmt.Printf("Receiving: %v\n", info.Receiving)
+	fmt.Printf("Total: %v\n", info.Total)
 }
