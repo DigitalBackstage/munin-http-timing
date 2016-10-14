@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptrace"
@@ -26,7 +27,7 @@ type RequestInfo struct {
 	Receiving  time.Duration
 	Total      time.Duration
 
-	Size int
+	BodySize int
 }
 
 // RequestStart starts the timer
@@ -84,16 +85,20 @@ func Ping(url string) (info RequestInfo, err error) {
 
 	info.RequestStart()
 	response, err := client.Do(req)
-	info.RequestDone()
 	if err != nil {
 		return
 	}
 
-	info.Size, err = getResponseBodySize(response)
+	info.BodySize, err = getResponseBodyBodySize(response)
+
+	// Keep this _after_ fetching the whole body because Request.Do returns as
+	// soon as the headers are received.
+	info.RequestDone()
+
 	return
 }
 
-func getResponseBodySize(r *http.Response) (int, error) {
+func getResponseBodyBodySize(r *http.Response) (int, error) {
 	body, err := ioutil.ReadAll(r.Body)
 	return len(body), err
 }
@@ -116,4 +121,36 @@ func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 			info.GotFirstResponseByte()
 		},
 	}
+}
+
+// DoPing does the actual stats gathering (HTTP requests) and prints it for munin
+func DoPing(uris map[string]string) {
+	totals := map[string]int64{}
+
+	for name, url := range uris {
+		info, err := Ping(url)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("multigraph timing.%s\n", name)
+		fmt.Printf("total.value %v\n", toMillisecond(info.Total))
+		fmt.Printf("resolving.value %v\n", toMillisecond(info.Resolving))
+		fmt.Printf("connecting.value %v\n", toMillisecond(info.Connecting))
+		fmt.Printf("sending.value %v\n", toMillisecond(info.Sending))
+		fmt.Printf("waiting.value %v\n", toMillisecond(info.Waiting))
+		fmt.Printf("receiving.value %v\n", toMillisecond(info.Receiving))
+		fmt.Println("")
+
+		totals[name] = toMillisecond(info.Total)
+	}
+
+	fmt.Println("multigraph timing")
+	for name, value := range totals {
+		fmt.Printf("%s_total.value %v\n", name, value)
+	}
+}
+
+func toMillisecond(d time.Duration) int64 {
+	return int64(d / time.Millisecond)
 }

@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
-	uris := geturisFromEnv()
+	uris := getURIsFromEnv()
+
+	// https://munin.readthedocs.io/en/latest/plugin/protocol-dirtyconfig.html#plugin-protocol-dirtyconfig
+	dirtyConfig := os.Getenv("MUNIN_CAP_DIRTYCONFIG") == "1"
 
 	switch {
 	case len(os.Args) > 2:
@@ -17,9 +20,12 @@ func main() {
 		fmt.Fprint(os.Stderr, usage())
 		os.Exit(1)
 	case len(os.Args) == 1:
-		doPing(uris)
+		DoPing(uris)
 	case os.Args[1] == "config":
-		doConfig(uris)
+		DoConfig(uris)
+		if dirtyConfig {
+			DoPing(uris)
+		}
 	case os.Args[1] == "autoconf":
 		fmt.Println("no" +
 			" (This module is meant to run outside of the node hosting the URIs" +
@@ -28,42 +34,25 @@ func main() {
 	}
 }
 
-func doConfig(uris map[string]string) {
-	panic("TODO")
-}
-
-func doPing(uris map[string]string) {
-	for _, url := range uris {
-		info, err := Ping(url)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Printf("\nUrl: %s\n", url)
-		fmt.Printf("Resolving: %v\n", info.Resolving)
-		fmt.Printf("Connecting: %v\n", info.Connecting)
-		fmt.Printf("Sending: %v\n", info.Sending)
-		fmt.Printf("Waiting: %v\n", info.Waiting)
-		fmt.Printf("Receiving: %v\n", info.Receiving)
-		fmt.Printf("Total: %v\n", info.Total)
-		fmt.Printf("Size: %v\n", info.Size)
-	}
-}
-
+// usage returns the usage string (help)
 func usage() string {
 	return fmt.Sprintf("Usage: %s [config|autoconf]\n", os.Args[0])
 }
 
-func geturisFromEnv() map[string]string {
+// getURIsFromEnv returns a map associating names to urls from the process env vars
+// Only vars prefixed with 'TARGET_' will be used, eg.
+// TARGET_EXAMPLE=https://example.com/ will register the URI with "example"
+// as the name.
+func getURIsFromEnv() map[string]string {
 	uris := make(map[string]string, 0)
 
 	for _, env := range os.Environ() {
 		parts := strings.SplitN(env, "_", 2)
-		// Get all envs that look like TARGET_*
 		if len(parts) != 2 || parts[0] != "TARGET" {
 			continue
 		}
-		name := parts[1]
+
+		name := strings.ToLower(strings.Split(parts[1], "=")[0])
 		uri := strings.SplitN(env, "=", 2)[1]
 
 		_, err := url.ParseRequestURI(uri)
