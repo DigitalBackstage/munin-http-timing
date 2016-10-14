@@ -22,7 +22,7 @@ graph_category network
 graph_args --base 1000 -l 0
 graph_scale no
 graph_info This graph show the timing of the different parts of an HTTP request in miliseconds.
-graph_order resolving connecting sending waiting receiving total
+graph_order total resolving connecting sending waiting receiving
 graph_vlabel Time (ms)`)
 
 	for name, url := range uris {
@@ -43,6 +43,7 @@ func printURIGraph(name, uri string) {
 
 func printFields(name string) {
 	labels := map[string]string{
+		"Total":      "Time spent performing the whole request.",
 		"Resolving":  "Time spent resolving the domain name.",
 		"Connecting": "Time spent initiating the TCP connection.",
 		"Sending":    "Time spent sending the HTTP request.",
@@ -50,16 +51,13 @@ func printFields(name string) {
 		"Receiving":  "Time spend receiving the request body.",
 	}
 
-	fmt.Println("total.label Total")
-	fmt.Println("total.draw AREA")
-	fmt.Println("total.info Time spent performing the whole request.")
 	fmt.Println("total.warning 1000:2000")
 	fmt.Println("total.critical 2000:")
 
 	for label, info := range labels {
 		field := strings.ToLower(label)
 		fmt.Printf("%s.label %s\n", field, label)
-		fmt.Printf("%s.draw STACK\n", field)
+		fmt.Printf("%s.draw LINE\n", field)
 		fmt.Printf("%s.info %s\n", field, info)
 	}
 
