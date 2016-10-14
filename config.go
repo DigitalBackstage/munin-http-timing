@@ -53,8 +53,8 @@ func printFields(name string) {
 	fmt.Println("total.label Total")
 	fmt.Println("total.draw AREA")
 	fmt.Println("total.info Time spent performing the whole request.")
-	fmt.Println("total.warning 1000")
-	fmt.Println("total.critical 2000")
+	fmt.Println("total.warning 1000:2000")
+	fmt.Println("total.critical 2000:")
 
 	for label, info := range labels {
 		field := strings.ToLower(label)
