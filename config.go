@@ -5,6 +5,17 @@ import (
 	"strings"
 )
 
+// Field order for graph_order and field descriptions
+// This is also hard-coded in Ping
+var graphOrder = []string{
+	"total",
+	"resolving",
+	"connecting",
+	"sending",
+	"waiting",
+	"receiving",
+}
+
 // DoConfig prints the munin plugin configuration to stdout
 func DoConfig(uris map[string]string) {
 	printMainGraph(uris)
@@ -16,20 +27,21 @@ func DoConfig(uris map[string]string) {
 
 // One serie per URI showing total time on the main graph
 func printMainGraph(uris map[string]string) {
-	fmt.Println(`multigraph timing
-graph_title Total time
-graph_category network
-graph_args --base 1000 -l 0
-graph_scale no
-graph_info This graph show the timing of the different parts of an HTTP request in miliseconds.
-graph_order total resolving connecting sending waiting receiving
-graph_vlabel Time (ms)`)
+	p := fmt.Println
+	p("multigraph timing")
+	p("graph_title Total time")
+	p("graph_category network")
+	p("graph_args --base 1000 -l 0")
+	p("graph_scale no")
+	p("graph_info This graph show the timing of the different parts of an HTTP request in miliseconds.")
+	p("graph_vlabel Time (ms)")
+	fmt.Printf("graph_order %s\n", strings.Join(graphOrder, " "))
 
 	for name, url := range uris {
 		fmt.Printf("%s_total.label %s\n", name, url)
 	}
 
-	fmt.Println("")
+	p("")
 }
 
 // One serie per timing category per URI
@@ -54,11 +66,16 @@ func printFields(name string) {
 	fmt.Println("total.warning 1000:2000")
 	fmt.Println("total.critical 2000:")
 
-	for label, info := range labels {
-		field := strings.ToLower(label)
+	for _, field := range graphOrder {
+		label := strings.ToUpper(field[0:1]) + field[1:]
 		fmt.Printf("%s.label %s\n", field, label)
-		fmt.Printf("%s.draw LINE\n", field)
-		fmt.Printf("%s.info %s\n", field, info)
+
+		if field == "total" {
+			fmt.Printf("%s.draw AREA\n", field)
+		} else {
+			fmt.Printf("%s.draw STACK\n", field)
+		}
+		fmt.Printf("%s.info %s\n", field, labels[label])
 	}
 
 	fmt.Println("")

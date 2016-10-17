@@ -37,6 +37,8 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 }
 
 // Print prints the timings following the Munin multigraph protocol
+// It prints the fields in a specific order, it must match the one in
+// graphOrder in config.go
 func (t *RequestInfo) Print() {
 	fmt.Printf("multigraph timing.%s\n", t.Name)
 
