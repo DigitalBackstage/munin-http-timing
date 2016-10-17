@@ -16,3 +16,6 @@ Example:
 env.TARGET_EXAMPLE https://example.com/
 env.TARGET_GITHUB https://github.com/L-P
 ```
+
+## License
+[MIT](LICENSE)
