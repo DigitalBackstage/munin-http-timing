@@ -42,19 +42,19 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 func (t *RequestInfo) Print() {
 	fmt.Printf("multigraph timing.%s\n", t.Name)
 
-	// Only mark total as unavailable because we don't know when the
-	// request failed and we don't want or need to know.
-	if t.Total == 0 {
-		fmt.Println("total.value U")
+	if t.StatusCode > 400 {
+		fmt.Println("resolving.value U")
+		fmt.Println("connecting.value U")
+		fmt.Println("sending.value U")
+		fmt.Println("waiting.value U")
+		fmt.Println("receiving.value U")
 	} else {
-		fmt.Printf("total.value %v\n", toMillisecond(t.Total))
+		fmt.Printf("resolving.value %v\n", toMillisecond(t.Resolving))
+		fmt.Printf("connecting.value %v\n", toMillisecond(t.Connecting))
+		fmt.Printf("sending.value %v\n", toMillisecond(t.Sending))
+		fmt.Printf("waiting.value %v\n", toMillisecond(t.Waiting))
+		fmt.Printf("receiving.value %v\n", toMillisecond(t.Receiving))
 	}
-
-	fmt.Printf("resolving.value %v\n", toMillisecond(t.Resolving))
-	fmt.Printf("connecting.value %v\n", toMillisecond(t.Connecting))
-	fmt.Printf("sending.value %v\n", toMillisecond(t.Sending))
-	fmt.Printf("waiting.value %v\n", toMillisecond(t.Waiting))
-	fmt.Printf("receiving.value %v\n", toMillisecond(t.Receiving))
 
 	fmt.Println("")
 }

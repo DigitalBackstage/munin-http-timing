@@ -8,7 +8,6 @@ import (
 // Field order for graph_order and field descriptions
 // This is also hard-coded in Ping
 var graphOrder = []string{
-	"total",
 	"resolving",
 	"connecting",
 	"sending",
@@ -55,7 +54,6 @@ func printURIGraph(name, uri string) {
 
 func printFields(name string) {
 	labels := map[string]string{
-		"Total":      "Time spent performing the whole request.",
 		"Resolving":  "Time spent resolving the domain name.",
 		"Connecting": "Time spent initiating the TCP connection.",
 		"Sending":    "Time spent sending the HTTP request.",
@@ -63,14 +61,11 @@ func printFields(name string) {
 		"Receiving":  "Time spend receiving the request body.",
 	}
 
-	fmt.Println("total.warning 1000:2000")
-	fmt.Println("total.critical 2000:")
-
 	for _, field := range graphOrder {
 		label := strings.ToUpper(field[0:1]) + field[1:]
 		fmt.Printf("%s.label %s\n", field, label)
 
-		if field == "total" {
+		if field == "resolving" {
 			fmt.Printf("%s.draw AREA\n", field)
 		} else {
 			fmt.Printf("%s.draw STACK\n", field)
