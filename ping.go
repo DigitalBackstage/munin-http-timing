@@ -97,7 +97,3 @@ func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
 		}(name, uri)
 	}
 }
-
-func toMillisecond(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
-}

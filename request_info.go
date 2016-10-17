@@ -92,3 +92,7 @@ func (t *RequestInfo) DNSDone() {
 	t.dnsDone = time.Now()
 	t.Resolving = t.dnsDone.Sub(t.dnsStart)
 }
+
+func toMillisecond(d time.Duration) int64 {
+	return int64(d / time.Millisecond)
+}
