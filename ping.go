@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,7 +13,11 @@ import (
 const httpGetTimeout = time.Duration(20 * time.Second)
 
 // DoPing does the actual stats gathering (HTTP requests) and prints it for munin
-func DoPing(uris map[string]string) {
+func DoPing(uris map[string]string) error {
+	if len(uris) <= 0 {
+		return errors.New("No URIs provided.")
+	}
+
 	totals := map[string]int64{}
 	queue := make(chan RequestInfo, len(uris))
 	doParallelPings(uris, queue)
@@ -28,6 +33,8 @@ func DoPing(uris map[string]string) {
 	for name, value := range totals {
 		fmt.Printf("%s_total.value %v\n", name, value)
 	}
+
+	return nil
 }
 
 // ping gets an HTTP URL and returns the request timing information

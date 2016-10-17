@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -16,12 +17,18 @@ var graphOrder = []string{
 }
 
 // DoConfig prints the munin plugin configuration to stdout
-func DoConfig(uris map[string]string) {
+func DoConfig(uris map[string]string) error {
+	if len(uris) <= 0 {
+		return errors.New("No URIs provided.")
+	}
+
 	printMainGraph(uris)
 
 	for name, uri := range uris {
 		printURIGraph(name, uri)
 	}
+
+	return nil
 }
 
 // One serie per URI showing total time on the main graph

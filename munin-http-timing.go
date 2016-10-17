@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	var err error
 	uris := getURIsFromEnv()
 
 	// https://munin.readthedocs.io/en/latest/plugin/protocol-dirtyconfig.html#plugin-protocol-dirtyconfig
@@ -20,11 +21,11 @@ func main() {
 		fmt.Fprint(os.Stderr, usage())
 		os.Exit(1)
 	case len(os.Args) == 1:
-		DoPing(uris)
+		err = DoPing(uris)
 	case os.Args[1] == "config":
-		DoConfig(uris)
-		if dirtyConfig {
-			DoPing(uris)
+		err = DoConfig(uris)
+		if dirtyConfig && err == nil {
+			err = DoPing(uris)
 		}
 	case os.Args[1] == "autoconf":
 		fmt.Println("no" +
@@ -32,6 +33,13 @@ func main() {
 			" and is to be configured manually.)",
 		)
 	}
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	os.Exit(0)
 }
 
 // usage returns the usage string (help)
