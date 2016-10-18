@@ -62,9 +62,13 @@ func getURIsFromEnv() map[string]string {
 
 		name := strings.ToLower(strings.Split(parts[1], "=")[0])
 		uri := strings.SplitN(env, "=", 2)[1]
+		if len(name) <= 0 || len(uri) <= 0 {
+			continue
+		}
 
 		_, err := url.ParseRequestURI(uri)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid URI: %s\n", env)
 			continue
 		}
 
