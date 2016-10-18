@@ -62,7 +62,13 @@ func (t *RequestInfo) Print() {
 // ConnectDone sets the connection time
 func (t *RequestInfo) ConnectDone() {
 	t.connectDone = time.Now()
-	t.Connecting = t.connectDone.Sub(t.dnsDone)
+
+	// If there was no DNS request (eg. IP), use start time
+	if t.dnsDone.IsZero() {
+		t.Connecting = t.connectDone.Sub(t.start)
+	} else {
+		t.Connecting = t.connectDone.Sub(t.dnsDone)
+	}
 }
 
 // WroteRequest sets the writing time
