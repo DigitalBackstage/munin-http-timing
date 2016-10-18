@@ -42,7 +42,7 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 func (t *RequestInfo) Print() {
 	fmt.Printf("multigraph timing.%s\n", t.Name)
 
-	if t.StatusCode > 400 {
+	if t.StatusCode > 300 {
 		fmt.Println("resolving.value U")
 		fmt.Println("connecting.value U")
 		fmt.Println("sending.value U")

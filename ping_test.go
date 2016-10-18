@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -13,11 +14,7 @@ import "net/http"
 
 func TestPing(t *testing.T) {
 	pings := make([]string, 0)
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		pings = append(pings, req.RequestURI)
-	})
-
-	closer, port, err := listenAndServeWithClose("127.0.0.1:0", nil)
+	closer, port, err := setupServer(&pings)
 	baseURI := "http://127.0.0.1:" + strconv.Itoa(port)
 	defer closer.Close()
 	if err != nil {
@@ -38,11 +35,40 @@ func TestPing(t *testing.T) {
 	if !reflect.DeepEqual(pings, expected) {
 		t.Errorf("DoPing did not request the server, got %v expected %v.", pings, expected)
 	}
+	pings = make([]string, 0)
 
 	err = DoPing(map[string]string{})
 	if err == nil {
 		t.Error("Ping should error out when no URIs provided.")
 	}
+
+	err = DoPing(map[string]string{
+		"err500": baseURI + "/error/500",
+		"err404": baseURI + "/error/404",
+		"err302": baseURI + "/error/302",
+	})
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func setupServer(pings *[]string) (srvCloser io.Closer, port int, err error) {
+	http.HandleFunc("/error/", func(w http.ResponseWriter, req *http.Request) {
+		*pings = append(*pings, req.RequestURI)
+		status, _ := strconv.Atoi(filepath.Base(req.RequestURI))
+
+		if status >= 300 && status < 400 {
+			w.Header().Add("Location", "http://example.com")
+		}
+
+		http.Error(w, req.RequestURI, status)
+	})
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		*pings = append(*pings, req.RequestURI)
+	})
+
+	srvCloser, port, err = listenAndServeWithClose("127.0.0.1:0", nil)
+	return
 }
 
 // Adapted from https://stackoverflow.com/a/40041517

@@ -33,6 +33,7 @@ func DoPing(uris map[string]string) error {
 	for name, value := range totals {
 		fmt.Printf("%s_total.value %v\n", name, value)
 	}
+	fmt.Println()
 
 	return nil
 }
@@ -42,6 +43,10 @@ func ping(name, uri string) (info RequestInfo, err error) {
 	trace := getHTTPTrace(&info)
 	client := http.Client{
 		Timeout: httpGetTimeout,
+		// Disable redirect, https://stackoverflow.com/a/38150816
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 
 	req, err := http.NewRequest("GET", uri, nil)
@@ -94,11 +99,13 @@ func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
 			info, err := ping(name, uri)
-			if err != nil || info.StatusCode >= 400 {
-				fmt.Fprintln(os.Stderr, "Unable to fetch "+uri)
+			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
+			}
+			if info.StatusCode >= 400 {
+				fmt.Fprintf(os.Stderr, "Got a %d, unable to fetch %s\n", info.StatusCode, uri)
 			} else if info.StatusCode >= 300 && info.StatusCode < 400 {
-				fmt.Fprintln(os.Stderr, "Not following redirection given by "+uri)
+				fmt.Fprintf(os.Stderr, "Not following redirection given by %s\n", uri)
 			}
 			queue <- info
 		}(name, uri)
