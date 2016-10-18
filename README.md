@@ -2,6 +2,8 @@
 munin-node plugin to get detailed HTTP response timing information from
 requesting an URI.
 
+![rendered graph example](example.png)
+
 ## Usage
 Build using `make`, link the executable in `/etc/munin/plugins/`, configure it
 in `/etc/munin/plugin-conf.d/` and restart the `munin-node` service.
