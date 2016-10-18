@@ -27,15 +27,16 @@ func TestPing(t *testing.T) {
 	err = DoPing(map[string]string{
 		"test1": baseURI + "/test1",
 		"test2": baseURI + "/test2",
+		"test3": "http://localhost:" + strconv.Itoa(port) + "/test3",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
 	sort.Strings(pings)
-	if len(pings) != 2 || !reflect.DeepEqual(pings, []string{"/test1", "/test2"}) {
-		t.Error("DoPing did not request the server.")
-		t.Error(pings)
+	expected := []string{"/test1", "/test2", "/test3"}
+	if !reflect.DeepEqual(pings, expected) {
+		t.Errorf("DoPing did not request the server, got %v expected %v.", pings, expected)
 	}
 
 	err = DoPing(map[string]string{})
