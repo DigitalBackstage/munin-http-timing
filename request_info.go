@@ -74,7 +74,13 @@ func (t *RequestInfo) ConnectDone() {
 // WroteRequest sets the writing time
 func (t *RequestInfo) WroteRequest() {
 	t.wroteRequest = time.Now()
-	t.Sending = t.wroteRequest.Sub(t.connectDone)
+
+	// If there was no connection (eg. hitting the same server twice), use start time
+	if t.connectDone.IsZero() {
+		t.Sending = t.wroteRequest.Sub(t.start)
+	} else {
+		t.Sending = t.wroteRequest.Sub(t.connectDone)
+	}
 }
 
 // GotFirstResponseByte sets the waiting time
