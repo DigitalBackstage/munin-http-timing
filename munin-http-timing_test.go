@@ -36,4 +36,8 @@ func TestURIsFromEnv(t *testing.T) {
 	os.Clearenv()
 	os.Setenv("TARGET_BAD_URI", "utter nonsense")
 	assertDeepEqual(t, map[string]string{}, getURIsFromEnv(), "bad URIs are not to be returned")
+
+	os.Clearenv()
+	os.Setenv("RANDOM_VAR", "https://example.com")
+	assertDeepEqual(t, map[string]string{}, getURIsFromEnv(), "only use TARGET_ envs")
 }

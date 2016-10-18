@@ -17,5 +17,14 @@ env.TARGET_EXAMPLE https://example.com/
 env.TARGET_GITHUB https://github.com/L-P
 ```
 
+## Tests
+```bash
+# run test suite
+go test
+
+# get code coverage and display it in browser
+make cover
+```
+
 ## License
 [MIT](LICENSE)
