@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/http/httptrace"
 	"os"
@@ -14,6 +15,8 @@ const httpGetTimeout = time.Duration(20 * time.Second)
 
 // DoPing does the actual stats gathering (HTTP requests) and prints it for munin
 func DoPing(uris map[string]string) error {
+	rand.Seed(time.Now().Unix())
+
 	if len(uris) <= 0 {
 		return errors.New("No URIs provided.")
 	}
@@ -109,6 +112,9 @@ func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
+			// Avoid sending all requests at the exact same time
+			time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
+
 			info, err := ping(name, uri)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
