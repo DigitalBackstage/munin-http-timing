@@ -29,6 +29,11 @@ type RequestInfo struct {
 	BodySize int
 }
 
+// IsOk returns true if the request succeeded
+func (t RequestInfo) IsOk() bool {
+	return t.StatusCode < 400
+}
+
 // RequestStart starts the timer
 func (t *RequestInfo) RequestStart(name, uri string) {
 	t.start = time.Now()
@@ -42,18 +47,18 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 func (t *RequestInfo) Print() {
 	fmt.Printf("multigraph timing.%s\n", t.Name)
 
-	if t.StatusCode > 300 {
-		fmt.Println("resolving.value U")
-		fmt.Println("connecting.value U")
-		fmt.Println("sending.value U")
-		fmt.Println("waiting.value U")
-		fmt.Println("receiving.value U")
-	} else {
+	if t.IsOk() {
 		fmt.Printf("resolving.value %v\n", toMillisecond(t.Resolving))
 		fmt.Printf("connecting.value %v\n", toMillisecond(t.Connecting))
 		fmt.Printf("sending.value %v\n", toMillisecond(t.Sending))
 		fmt.Printf("waiting.value %v\n", toMillisecond(t.Waiting))
 		fmt.Printf("receiving.value %v\n", toMillisecond(t.Receiving))
+	} else {
+		fmt.Println("resolving.value U")
+		fmt.Println("connecting.value U")
+		fmt.Println("sending.value U")
+		fmt.Println("waiting.value U")
+		fmt.Println("receiving.value U")
 	}
 
 	fmt.Println("")

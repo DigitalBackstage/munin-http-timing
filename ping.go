@@ -18,7 +18,7 @@ func DoPing(uris map[string]string) error {
 		return errors.New("No URIs provided.")
 	}
 
-	totals := map[string]int64{}
+	totals := map[string]string{}
 	queue := make(chan RequestInfo, len(uris))
 	doParallelPings(uris, queue)
 
@@ -26,7 +26,12 @@ func DoPing(uris map[string]string) error {
 		info := <-queue
 
 		info.Print()
-		totals[info.Name] = toMillisecond(info.Total)
+
+		if info.IsOk() {
+			totals[info.Name] = fmt.Sprintf("%v", toMillisecond(info.Total))
+		} else {
+			totals[info.Name] = "U"
+		}
 	}
 
 	fmt.Println("multigraph timing")
@@ -67,6 +72,12 @@ func ping(name, uri string) (info RequestInfo, err error) {
 	// soon as the headers are received.
 	info.RequestDone(response.StatusCode)
 
+	if info.StatusCode >= 400 {
+		fmt.Fprintf(os.Stderr, "Got a %d, unable to fetch %s\n", info.StatusCode, uri)
+	} else if info.StatusCode >= 300 && info.StatusCode < 400 {
+		fmt.Fprintf(os.Stderr, "Not following redirection given by %s\n", uri)
+	}
+
 	return
 }
 
@@ -101,11 +112,6 @@ func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
 			info, err := ping(name, uri)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-			}
-			if info.StatusCode >= 400 {
-				fmt.Fprintf(os.Stderr, "Got a %d, unable to fetch %s\n", info.StatusCode, uri)
-			} else if info.StatusCode >= 300 && info.StatusCode < 400 {
-				fmt.Fprintf(os.Stderr, "Not following redirection given by %s\n", uri)
 			}
 			queue <- info
 		}(name, uri)
