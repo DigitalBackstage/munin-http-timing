@@ -1,1 +1,3 @@
+---
 language: go
+scipt: go test -v ./...

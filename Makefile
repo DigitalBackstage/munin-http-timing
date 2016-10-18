@@ -1,3 +1,5 @@
+all:
+
 .PHONY: cover
 cover:
 	go test -coverprofile=.coverage
