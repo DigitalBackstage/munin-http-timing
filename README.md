@@ -5,8 +5,11 @@ requesting an URI.
 ![rendered graph example](example.png)
 
 ## Usage
-Build using `make`, link the executable in `/etc/munin/plugins/`, configure it
-in `/etc/munin/plugin-conf.d/` and restart the `munin-node` service.
+Build using `make release`, link the executable from `releases/` in
+`/etc/munin/plugins/`, configure it in `/etc/munin/plugin-conf.d/` and restart
+the `munin-node` service.  
+Two binaries are provided, one for _ARMv6_ (Raspberry-Pi compatible) and one
+for AMD64.
 
 ## Configuration
 URIs must be registered in the environment variables using variables named
