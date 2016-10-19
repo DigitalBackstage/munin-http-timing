@@ -25,7 +25,9 @@ func TestURIsFromEnv(t *testing.T) {
 		"example3": "https://example.com/?3",
 	}
 	assertDeepEqual(t, expected, actual, "getURIsFromEnv properly parse env vars")
+}
 
+func TestBadURIsFromEnv(t *testing.T) {
 	os.Clearenv()
 	os.Setenv("TARGET_", "https://example.com/?noname")
 	assertDeepEqual(t, map[string]string{}, getURIsFromEnv(), "blank names are not allowed")
