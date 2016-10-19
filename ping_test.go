@@ -43,6 +43,6 @@ func TestHTTPErrors(t *testing.T) {
 func TestEmptyURIList(t *testing.T) {
 	err := DoPing(map[string]string{})
 	if err == nil {
-		t.Error("Ping should error out when no URIs provided.")
+		t.Error("Ping should error out when given no URIs.")
 	}
 }

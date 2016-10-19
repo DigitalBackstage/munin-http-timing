@@ -59,17 +59,20 @@ func getURIsFromEnv() map[string]string {
 	uris := make(map[string]string, 0)
 
 	for _, env := range os.Environ() {
+		// Filter TARGET_*
 		parts := strings.SplitN(env, "_", 2)
 		if len(parts) != 2 || parts[0] != "TARGET" {
 			continue
 		}
 
+		// Check for values
 		name := strings.ToLower(strings.Split(parts[1], "=")[0])
 		uri := strings.SplitN(env, "=", 2)[1]
 		if len(name) <= 0 || len(uri) <= 0 {
 			continue
 		}
 
+		// Check if URI is valid
 		_, err := url.ParseRequestURI(uri)
 		if err != nil {
 			stderr.Printf("Invalid URI: %s\n", env)

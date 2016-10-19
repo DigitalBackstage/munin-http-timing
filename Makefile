@@ -11,5 +11,5 @@ release:
 	GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -o release/http-timing_arm
 
 cover:
-	go test -coverprofile=.coverage
+	go test -v -coverprofile=.coverage
 	go tool cover -html=.coverage
