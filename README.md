@@ -22,6 +22,11 @@ env.TARGET_EXAMPLE https://example.com/
 env.TARGET_GITHUB https://github.com/L-P
 ```
 
+Other options:
+    - `env.RANDOM_DELAY` (default 0) when set to `1` requests will be delayed
+      by a random amount. This is useful when you test many URIs on the same
+      server and don't want to have them arrive at the same time.
+
 ## Tests
 ```bash
 # run test suite

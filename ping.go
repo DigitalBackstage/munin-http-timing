@@ -112,7 +112,9 @@ func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
 			// Avoid sending all requests at the exact same time
-			time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
+			if RandomDelayEnabled() {
+				time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
+			}
 
 			info, err := ping(name, uri)
 			if err != nil {

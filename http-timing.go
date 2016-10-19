@@ -81,3 +81,9 @@ func getURIsFromEnv() map[string]string {
 
 	return uris
 }
+
+// RandomDelayEnabled returns true if we should delay parallel requests by a
+// random delay
+func RandomDelayEnabled() bool {
+	return os.Getenv("RANDOM_DELAY") == "1"
+}

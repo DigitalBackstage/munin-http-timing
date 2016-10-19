@@ -22,6 +22,8 @@ func init() {
 	var buf bytes.Buffer
 	stdout.SetOutput(&buf)
 	stderr.SetOutput(&buf)
+
+	os.Setenv("RANDOM_DELAY", "1")
 }
 
 func TestMain(m *testing.M) {
