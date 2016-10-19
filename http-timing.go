@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"strings"
 )
+
+var stdout = log.New(os.Stdout, "", 0)
+var stderr = log.New(os.Stderr, "", 0)
 
 func main() {
 	var err error
@@ -18,7 +22,7 @@ func main() {
 	case len(os.Args) > 2:
 		fallthrough
 	default:
-		fmt.Fprint(os.Stderr, usage())
+		stderr.Print(usage())
 		os.Exit(1)
 	case len(os.Args) == 1:
 		err = DoPing(uris)
@@ -28,14 +32,14 @@ func main() {
 			err = DoPing(uris)
 		}
 	case os.Args[1] == "autoconf":
-		fmt.Println("no" +
+		stdout.Println("no" +
 			" (This module is meant to run outside of the node hosting the URIs" +
 			" and is to be configured manually.)",
 		)
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		stderr.Println(err)
 		os.Exit(1)
 	}
 
@@ -68,7 +72,7 @@ func getURIsFromEnv() map[string]string {
 
 		_, err := url.ParseRequestURI(uri)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Invalid URI: %s\n", env)
+			stderr.Printf("Invalid URI: %s\n", env)
 			continue
 		}
 

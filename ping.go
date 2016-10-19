@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptrace"
-	"os"
 	"time"
 )
 
@@ -37,11 +36,11 @@ func DoPing(uris map[string]string) error {
 		}
 	}
 
-	fmt.Println("multigraph timing")
+	stdout.Println("multigraph timing")
 	for name, value := range totals {
-		fmt.Printf("%s_total.value %v\n", name, value)
+		stdout.Printf("%s_total.value %v\n", name, value)
 	}
-	fmt.Println()
+	stdout.Println()
 
 	return nil
 }
@@ -76,9 +75,9 @@ func ping(name, uri string) (info RequestInfo, err error) {
 	info.RequestDone(response.StatusCode)
 
 	if info.StatusCode >= 400 {
-		fmt.Fprintf(os.Stderr, "Got a %d, unable to fetch %s\n", info.StatusCode, uri)
+		stderr.Printf("Got a %d, unable to fetch %s\n", info.StatusCode, uri)
 	} else if info.StatusCode >= 300 && info.StatusCode < 400 {
-		fmt.Fprintf(os.Stderr, "Not following redirection given by %s\n", uri)
+		stderr.Printf("Not following redirection given by %s\n", uri)
 	}
 
 	return
@@ -117,7 +116,7 @@ func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
 
 			info, err := ping(name, uri)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				stderr.Println(err)
 			}
 			queue <- info
 		}(name, uri)

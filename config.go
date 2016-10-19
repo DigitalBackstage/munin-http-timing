@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -33,7 +32,7 @@ func DoConfig(uris map[string]string) error {
 
 // One serie per URI showing total time on the main graph
 func printMainGraph(uris map[string]string) {
-	p := fmt.Println
+	p := stdout.Println
 	p("multigraph timing")
 	p("graph_title Total time")
 	p("graph_category network")
@@ -41,10 +40,10 @@ func printMainGraph(uris map[string]string) {
 	p("graph_scale no")
 	p("graph_info This graph show the timing of the different parts of an HTTP request in miliseconds.")
 	p("graph_vlabel Time (ms)")
-	fmt.Printf("graph_order %s\n", strings.Join(graphOrder, " "))
+	stdout.Printf("graph_order %s\n", strings.Join(graphOrder, " "))
 
 	for name, url := range uris {
-		fmt.Printf("%s_total.label %s\n", name, url)
+		stdout.Printf("%s_total.label %s\n", name, url)
 	}
 
 	p("")
@@ -52,7 +51,7 @@ func printMainGraph(uris map[string]string) {
 
 // One serie per timing category per URI
 func printURIGraph(name, uri string) {
-	p := fmt.Printf
+	p := stdout.Printf
 	p("multigraph timing.%s\n", name)
 	p("graph_title Timings for %s\n", uri)
 	p("graph_vlabel Time (ms)\n")
@@ -70,15 +69,15 @@ func printFields(name string) {
 
 	for _, field := range graphOrder {
 		label := strings.ToUpper(field[0:1]) + field[1:]
-		fmt.Printf("%s.label %s\n", field, label)
+		stdout.Printf("%s.label %s\n", field, label)
 
 		if field == "resolving" {
-			fmt.Printf("%s.draw AREA\n", field)
+			stdout.Printf("%s.draw AREA\n", field)
 		} else {
-			fmt.Printf("%s.draw STACK\n", field)
+			stdout.Printf("%s.draw STACK\n", field)
 		}
-		fmt.Printf("%s.info %s\n", field, labels[label])
+		stdout.Printf("%s.info %s\n", field, labels[label])
 	}
 
-	fmt.Println("")
+	stdout.Println("")
 }

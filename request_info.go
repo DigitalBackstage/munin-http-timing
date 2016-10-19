@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 // RequestInfo contains the different timings involved in sending
 // an HTTP request and its response
@@ -45,23 +42,23 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 // It prints the fields in a specific order, it must match the one in
 // graphOrder in config.go
 func (t *RequestInfo) Print() {
-	fmt.Printf("multigraph timing.%s\n", t.Name)
+	stdout.Printf("multigraph timing.%s\n", t.Name)
 
 	if t.IsOk() {
-		fmt.Printf("resolving.value %v\n", toMillisecond(t.Resolving))
-		fmt.Printf("connecting.value %v\n", toMillisecond(t.Connecting))
-		fmt.Printf("sending.value %v\n", toMillisecond(t.Sending))
-		fmt.Printf("waiting.value %v\n", toMillisecond(t.Waiting))
-		fmt.Printf("receiving.value %v\n", toMillisecond(t.Receiving))
+		stdout.Printf("resolving.value %v\n", toMillisecond(t.Resolving))
+		stdout.Printf("connecting.value %v\n", toMillisecond(t.Connecting))
+		stdout.Printf("sending.value %v\n", toMillisecond(t.Sending))
+		stdout.Printf("waiting.value %v\n", toMillisecond(t.Waiting))
+		stdout.Printf("receiving.value %v\n", toMillisecond(t.Receiving))
 	} else {
-		fmt.Println("resolving.value U")
-		fmt.Println("connecting.value U")
-		fmt.Println("sending.value U")
-		fmt.Println("waiting.value U")
-		fmt.Println("receiving.value U")
+		stdout.Println("resolving.value U")
+		stdout.Println("connecting.value U")
+		stdout.Println("sending.value U")
+		stdout.Println("waiting.value U")
+		stdout.Println("receiving.value U")
 	}
 
-	fmt.Println("")
+	stdout.Println("")
 }
 
 // ConnectDone sets the connection time
