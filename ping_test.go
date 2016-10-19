@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -58,10 +59,13 @@ func setupServer(pings *[]string) (srvCloser io.Closer, port int, err error) {
 		status, _ := strconv.Atoi(filepath.Base(req.RequestURI))
 
 		if status >= 300 && status < 400 {
-			w.Header().Add("Location", "http://example.com")
+			w.Header().Add("Location", fmt.Sprintf("http://127.0.0.1:%d/panic", port))
 		}
 
 		http.Error(w, req.RequestURI, status)
+	})
+	http.HandleFunc("/panic", func(w http.ResponseWriter, req *http.Request) {
+		panic("This should be unreachable.")
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		*pings = append(*pings, req.RequestURI)
