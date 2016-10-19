@@ -11,6 +11,9 @@ import (
 var stdout = log.New(os.Stdout, "", 0)
 var stderr = log.New(os.Stderr, "", 0)
 
+// Filled during build
+var version string
+
 func main() {
 	var err error
 	uris := getURIsFromEnv()
@@ -36,6 +39,8 @@ func main() {
 			" (This module is meant to run outside of the node hosting the URIs" +
 			" and is to be configured manually.)",
 		)
+	case os.Args[1] == "version":
+		stdout.Println(version)
 	}
 
 	if err != nil {
@@ -48,7 +53,7 @@ func main() {
 
 // usage returns the usage string (help)
 func usage() string {
-	return fmt.Sprintf("Usage: %s [config|autoconf]\n", os.Args[0])
+	return fmt.Sprintf("Usage: %s [config|autoconf|version]\n", os.Args[0])
 }
 
 // getURIsFromEnv returns a map associating names to urls from the process env vars
