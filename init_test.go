@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -9,14 +8,49 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
+	"sync"
 	"testing"
 )
 
 // Requested URIs will be appended in order here
-var TestServerPings []string
+var TestServerPings *Pings
 var TestServerPort int
 var TestServerBaseURI string
+
+type Pings struct {
+	lock  sync.Mutex
+	pings []string
+}
+
+func NewPings() *Pings {
+	p := &Pings{}
+	p.pings = make([]string, 0)
+	return p
+}
+
+func (p *Pings) Purge() {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	p.pings = []string{}
+}
+
+func (p *Pings) Sorted() []string {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	sort.Strings(p.pings)
+	return p.pings
+}
+
+func (p *Pings) Push(uri string) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	p.pings = append(p.pings, uri)
+}
 
 func init() {
 	var buf bytes.Buffer
@@ -27,7 +61,8 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
-	closer, port, err := SetupTestServer(&TestServerPings)
+	TestServerPings = NewPings()
+	closer, port, err := SetupTestServer(TestServerPings)
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +78,7 @@ func TestMain(m *testing.M) {
 // - /error/:code to return the HTTP error given by :code
 // - /panic to call panic()
 // - anything else to append the RequestURI to the given pings slice
-func SetupTestServer(pings *[]string) (srvCloser io.Closer, port int, err error) {
+func SetupTestServer(pings *Pings) (srvCloser io.Closer, port int, err error) {
 	http.HandleFunc("/error/", func(w http.ResponseWriter, req *http.Request) {
 		status, _ := strconv.Atoi(filepath.Base(req.RequestURI))
 
@@ -57,7 +92,7 @@ func SetupTestServer(pings *[]string) (srvCloser io.Closer, port int, err error)
 		panic("This should be unreachable: " + req.RequestURI)
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		*pings = append(*pings, req.RequestURI)
+		pings.Push(req.RequestURI)
 	})
 
 	srvCloser, port, err = listenAndServeWithClose("127.0.0.1:0", nil)

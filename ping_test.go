@@ -2,13 +2,12 @@ package main
 
 import (
 	"reflect"
-	"sort"
 	"strconv"
 	"testing"
 )
 
 func TestPing(t *testing.T) {
-	TestServerPings = make([]string, 0)
+	TestServerPings.Purge()
 	err := DoPing(map[string]string{
 		"test1": TestServerBaseURI + "/test1",
 		"test2": TestServerBaseURI + "/test2",
@@ -19,10 +18,10 @@ func TestPing(t *testing.T) {
 		t.Error(err)
 	}
 
-	sort.Strings(TestServerPings)
 	expected := []string{"/test1", "/test2", "/test3"}
-	if !reflect.DeepEqual(TestServerPings, expected) {
-		t.Errorf("DoPing did not request the server, got %v expected %v.", TestServerPings, expected)
+	actual := TestServerPings.Sorted()
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("DoPing did not request the server, got %v expected %v.", actual, expected)
 	}
 }
 
