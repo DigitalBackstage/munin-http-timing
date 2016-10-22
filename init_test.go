@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -53,9 +54,8 @@ func (p *Pings) Push(uri string) {
 }
 
 func init() {
-	var buf bytes.Buffer
-	stdout.SetOutput(&buf)
-	stderr.SetOutput(&buf)
+	stdout.SetOutput(ioutil.Discard)
+	stderr.SetOutput(ioutil.Discard)
 
 	os.Setenv("RANDOM_DELAY", "1")
 }
