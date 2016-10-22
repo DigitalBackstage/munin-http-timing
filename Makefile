@@ -1,5 +1,5 @@
 all:
-.PHONY: cover release clean
+.PHONY: cover release clean test
 
 clean:
 	git clean -fdX
@@ -12,5 +12,9 @@ release:
 	GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -o release/http-timing_arm
 
 cover:
-	go test -v -coverprofile=.coverage
+	go test -coverprofile=.coverage
 	go tool cover -html=.coverage
+
+test:
+	go test -v
+	go test -race
