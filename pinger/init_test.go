@@ -1,9 +1,8 @@
-package main
+package pinger
 
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -54,9 +53,6 @@ func (p *Pings) Push(uri string) {
 }
 
 func init() {
-	stdout.SetOutput(ioutil.Discard)
-	stderr.SetOutput(ioutil.Discard)
-
 	os.Setenv("RANDOM_DELAY", "1")
 }
 

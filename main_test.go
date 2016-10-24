@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -35,9 +36,11 @@ func TestBadURIsFromEnv(t *testing.T) {
 	os.Clearenv()
 	assertDeepEqual(t, map[string]string{}, getURIsFromEnv(), "no env means no URIs")
 
+	stderr.SetOutput(ioutil.Discard)
 	os.Clearenv()
 	os.Setenv("TARGET_BAD_URI", "utter nonsense")
 	assertDeepEqual(t, map[string]string{}, getURIsFromEnv(), "bad URIs are not to be returned")
+	stderr.SetOutput(os.Stderr)
 
 	os.Clearenv()
 	os.Setenv("RANDOM_VAR", "https://example.com")

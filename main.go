@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/DigitalBackstage/munin-http-timing/pinger"
 )
 
 var stdout = log.New(os.Stdout, "", 0)
@@ -16,6 +18,7 @@ var version string
 
 func main() {
 	var err error
+	var out string
 	uris := getURIsFromEnv()
 
 	// https://munin.readthedocs.io/en/latest/plugin/protocol-dirtyconfig.html#plugin-protocol-dirtyconfig
@@ -28,11 +31,12 @@ func main() {
 		stderr.Print(usage())
 		os.Exit(1)
 	case len(os.Args) == 1:
-		err = DoPing(uris)
+		out, err = pinger.DoPing(uris)
+		stdout.Print(out)
 	case os.Args[1] == "config":
 		err = DoConfig(uris)
 		if dirtyConfig && err == nil {
-			err = DoPing(uris)
+			out, err = pinger.DoPing(uris)
 		}
 	case os.Args[1] == "autoconf":
 		stdout.Println("no" +
@@ -48,6 +52,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	stdout.Print(out)
 	os.Exit(0)
 }
 
@@ -88,10 +93,4 @@ func getURIsFromEnv() map[string]string {
 	}
 
 	return uris
-}
-
-// RandomDelayEnabled returns true if we should delay parallel requests by a
-// random delay
-func RandomDelayEnabled() bool {
-	return os.Getenv("RANDOM_DELAY") == "1"
 }

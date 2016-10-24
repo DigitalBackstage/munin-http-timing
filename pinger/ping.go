@@ -1,33 +1,40 @@
-package main
+package pinger
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httptrace"
+	"os"
 	"time"
 )
+
+var stderr = log.New(os.Stderr, "", 0)
 
 const httpGetTimeout = time.Duration(20 * time.Second)
 
 // DoPing does the actual stats gathering (HTTP requests) and prints it for munin
-func DoPing(uris map[string]string) error {
+func DoPing(uris map[string]string) (string, error) {
 	rand.Seed(time.Now().Unix())
 
 	if len(uris) <= 0 {
-		return errors.New("No URIs provided.")
+		return "", errors.New("No URIs provided.")
 	}
 
 	totals := map[string]string{}
 	queue := make(chan *RequestInfo, len(uris))
 	doParallelPings(uris, queue)
 
+	buf := &bytes.Buffer{}
+
 	for i := 0; i < len(uris); i++ {
 		info := <-queue
 
-		info.Print()
+		fmt.Fprint(buf, info)
 
 		if info.IsOk() {
 			totals[info.Name] = fmt.Sprintf("%v", toMillisecond(info.Total))
@@ -36,13 +43,13 @@ func DoPing(uris map[string]string) error {
 		}
 	}
 
-	stdout.Println("multigraph timing")
+	fmt.Fprint(buf, "multigraph timing\n")
 	for name, value := range totals {
-		stdout.Printf("%s_total.value %v\n", name, value)
+		fmt.Fprintf(buf, "%s_total.value %v\n", name, value)
 	}
-	stdout.Println()
+	fmt.Fprint(buf, "\n")
 
-	return nil
+	return buf.String(), nil
 }
 
 // ping gets an HTTP URL and returns the request timing information
@@ -115,7 +122,7 @@ func doParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
 			// Avoid sending all requests at the exact same time
-			if RandomDelayEnabled() {
+			if randomDelayEnabled() {
 				time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
 			}
 
@@ -126,4 +133,10 @@ func doParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
 			queue <- info
 		}(name, uri)
 	}
+}
+
+// RandomDelayEnabled returns true if we should delay parallel requests by a
+// random delay
+func randomDelayEnabled() bool {
+	return os.Getenv("RANDOM_DELAY") == "1"
 }

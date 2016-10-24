@@ -1,6 +1,8 @@
-package main
+package pinger
 
 import (
+	"bytes"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -57,27 +59,30 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 // Print prints the timings following the Munin multigraph protocol
 // It prints the fields in a specific order, it must match the one in
 // graphOrder in config.go
-func (t *RequestInfo) Print() {
+func (t *RequestInfo) String() string {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 
-	stdout.Printf("multigraph timing.%s\n", t.Name)
+	buf := &bytes.Buffer{}
+	fmt.Fprintf(buf, "multigraph timing.%s\n", t.Name)
 
 	if t.IsOk() {
-		stdout.Printf("resolving.value %v\n", toMillisecond(t.Resolving))
-		stdout.Printf("connecting.value %v\n", toMillisecond(t.Connecting))
-		stdout.Printf("sending.value %v\n", toMillisecond(t.Sending))
-		stdout.Printf("waiting.value %v\n", toMillisecond(t.Waiting))
-		stdout.Printf("receiving.value %v\n", toMillisecond(t.Receiving))
+		fmt.Fprintf(buf, "resolving.value %v\n", toMillisecond(t.Resolving))
+		fmt.Fprintf(buf, "connecting.value %v\n", toMillisecond(t.Connecting))
+		fmt.Fprintf(buf, "sending.value %v\n", toMillisecond(t.Sending))
+		fmt.Fprintf(buf, "waiting.value %v\n", toMillisecond(t.Waiting))
+		fmt.Fprintf(buf, "receiving.value %v\n", toMillisecond(t.Receiving))
 	} else {
-		stdout.Println("resolving.value U")
-		stdout.Println("connecting.value U")
-		stdout.Println("sending.value U")
-		stdout.Println("waiting.value U")
-		stdout.Println("receiving.value U")
+		fmt.Fprint(buf, "resolving.value U\n")
+		fmt.Fprint(buf, "connecting.value U\n")
+		fmt.Fprint(buf, "sending.value U\n")
+		fmt.Fprint(buf, "waiting.value U\n")
+		fmt.Fprint(buf, "receiving.value U\n")
 	}
 
-	stdout.Println("")
+	fmt.Fprint(buf, "\n")
+
+	return buf.String()
 }
 
 // ConnectDone sets the connection time
