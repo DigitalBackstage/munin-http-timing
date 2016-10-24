@@ -21,7 +21,7 @@ func DoPing(uris map[string]string) error {
 	}
 
 	totals := map[string]string{}
-	queue := make(chan RequestInfo, len(uris))
+	queue := make(chan *RequestInfo, len(uris))
 	doParallelPings(uris, queue)
 
 	for i := 0; i < len(uris); i++ {
@@ -46,8 +46,11 @@ func DoPing(uris map[string]string) error {
 }
 
 // ping gets an HTTP URL and returns the request timing information
-func ping(name, uri string) (info RequestInfo, err error) {
-	trace := getHTTPTrace(&info)
+func ping(name, uri string) (*RequestInfo, error) {
+	var err error
+
+	info := NewRequestInfo()
+	trace := getHTTPTrace(info)
 	client := http.Client{
 		Timeout: httpGetTimeout,
 		// Disable redirect, https://stackoverflow.com/a/38150816
@@ -58,14 +61,14 @@ func ping(name, uri string) (info RequestInfo, err error) {
 
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
-		return
+		return info, err
 	}
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), &trace))
 
 	info.RequestStart(name, uri)
 	response, err := client.Do(req)
 	if err != nil {
-		return
+		return info, err
 	}
 
 	info.BodySize, err = getResponseBodyBodySize(response)
@@ -80,7 +83,7 @@ func ping(name, uri string) (info RequestInfo, err error) {
 		stderr.Printf("Not following redirection given by %s\n", uri)
 	}
 
-	return
+	return info, err
 }
 
 func getResponseBodyBodySize(r *http.Response) (int, error) {
@@ -108,7 +111,7 @@ func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 	}
 }
 
-func doParallelPings(uris map[string]string, queue chan<- RequestInfo) {
+func doParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
 			// Avoid sending all requests at the exact same time
