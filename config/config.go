@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -9,19 +10,29 @@ import (
 
 var stderr = log.New(os.Stderr, "", 0)
 
+// Filled during build
+var version string
+
 // Config holds the application configuration
 type Config struct {
 	URIs map[string]string
 
 	RandomDelayEnabled bool
 	ConfigAndPing      bool
+	UserAgent          string
 }
 
 // NewConfigFromEnv creates and fills a Config from os.Environ()
 func NewConfigFromEnv() Config {
 	var config Config
+
 	config.URIs = getURIsFromEnv(os.Environ())
 	config.RandomDelayEnabled = os.Getenv("RANDOM_DELAY") == "1"
+	config.UserAgent = os.Getenv("USER_AGENT")
+
+	if len(config.UserAgent) == 0 {
+		config.UserAgent = fmt.Sprintf("http-timing/%s", version)
+	}
 
 	// https://munin.readthedocs.io/en/latest/plugin/protocol-dirtyconfig.html#plugin-protocol-dirtyconfig
 	config.ConfigAndPing = os.Getenv("MUNIN_CAP_DIRTYCONFIG") == "1"

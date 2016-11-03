@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"net/http/httptrace"
 	"time"
+
+	"github.com/DigitalBackstage/munin-http-timing/config"
 )
 
 const httpGetTimeout = time.Duration(20 * time.Second)
 
 // ping gets an HTTP URL and returns the request timing information
-func ping(name, uri string) (*RequestInfo, error) {
+func ping(name, uri, userAgent string) (*RequestInfo, error) {
 	var err error
 
 	info := NewRequestInfo()
@@ -29,6 +31,8 @@ func ping(name, uri string) (*RequestInfo, error) {
 	if err != nil {
 		return info, err
 	}
+	req.Header.Set("User-Agent", userAgent)
+
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), &trace))
 
 	info.RequestStart(name, uri)
@@ -82,15 +86,15 @@ func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 
 // DoParallelPings calls ping on the given URIs and pushes the result in the
 // given queue
-func DoParallelPings(uris map[string]string, randomDelayEnabled bool, queue chan<- *RequestInfo) {
-	for name, uri := range uris {
+func DoParallelPings(config config.Config, queue chan<- *RequestInfo) {
+	for name, uri := range config.URIs {
 		go func(name, uri string) {
 			// Avoid sending all requests at the exact same time
-			if randomDelayEnabled {
+			if config.RandomDelayEnabled {
 				time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
 			}
 
-			info, err := ping(name, uri)
+			info, err := ping(name, uri, config.UserAgent)
 			info.Error = err
 			queue <- info
 		}(name, uri)

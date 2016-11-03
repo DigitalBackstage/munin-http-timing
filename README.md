@@ -23,14 +23,17 @@ env.TARGET_GITHUB https://github.com/L-P
 ```
 
 Other options:
-    - `env.RANDOM_DELAY` (default 0) when set to `1` requests will be delayed
-      by a random amount. This is useful when you test many URIs on the same
-      server and don't want to have them arrive at the same time.
+
+- `env.RANDOM_DELAY` (default to `0`) when set to `1` requests will be delayed
+  by a random amount. This is useful when you test many URIs on the same
+  server and don't want to have them arrive at the same time.
+- `env.USER_AGENT` (default to `http-timing/version`) `User-Agent` header to
+  send when making the HTTP requests.
 
 ## Tests
 ```bash
 # run test suite
-go test
+make test
 
 # get code coverage and display it in browser
 make cover

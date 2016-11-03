@@ -25,7 +25,7 @@ func DoPing(config config.Config) (string, error) {
 
 	totals := []string{}
 	queue := make(chan *pinger.RequestInfo, len(config.URIs))
-	pinger.DoParallelPings(config.URIs, config.RandomDelayEnabled, queue)
+	pinger.DoParallelPings(config, queue)
 
 	buf := &bytes.Buffer{}
 

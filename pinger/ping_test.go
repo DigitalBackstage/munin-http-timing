@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	"github.com/DigitalBackstage/munin-http-timing/config"
 )
 
 func TestPing(t *testing.T) {
@@ -45,8 +47,12 @@ func TestHTTPErrors(t *testing.T) {
 // doPingTest pings a set of URIs and return the errors
 func doPingTest(uris map[string]string) []error {
 	queue := make(chan *RequestInfo, len(uris))
+	config := config.Config{
+		URIs:               uris,
+		RandomDelayEnabled: false,
+	}
 
-	DoParallelPings(uris, false, queue)
+	DoParallelPings(config, queue)
 	var errs []error
 	for i := 0; i < len(uris); i++ {
 		info := <-queue

@@ -51,6 +51,7 @@ func TestNewConfigFromEnv(t *testing.T) {
 	os.Clearenv()
 	os.Setenv("RANDOM_DELAY", "1")
 	os.Setenv("MUNIN_CAP_DIRTYCONFIG", "1")
+	os.Setenv("USER_AGENT", "Smith")
 
 	config := NewConfigFromEnv()
 
@@ -60,6 +61,9 @@ func TestNewConfigFromEnv(t *testing.T) {
 	}
 	if config.ConfigAndPing != true {
 		t.Error("Expected dirty config to be set.")
+	}
+	if config.UserAgent != "Smith" {
+		t.Error("Expected UA to be 'Smith'.")
 	}
 }
 
@@ -76,5 +80,8 @@ func TestNewConfigFromEnvWithZeroes(t *testing.T) {
 	}
 	if config.ConfigAndPing != false {
 		t.Error("Expected dirty config to be unset.")
+	}
+	if config.UserAgent == "" {
+		t.Error("Expected UA to be defaulted to something.")
 	}
 }
