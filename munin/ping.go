@@ -9,26 +9,27 @@ import (
 	"os"
 	"time"
 
+	"github.com/DigitalBackstage/munin-http-timing/config"
 	"github.com/DigitalBackstage/munin-http-timing/pinger"
 )
 
 var stderr = log.New(os.Stderr, "", 0)
 
 // DoPing does the actual stats gathering (HTTP requests) and prints it for munin
-func DoPing(uris map[string]string) (string, error) {
+func DoPing(config config.Config) (string, error) {
 	rand.Seed(time.Now().Unix())
 
-	if len(uris) <= 0 {
+	if len(config.URIs) <= 0 {
 		return "", errors.New("No URIs provided.")
 	}
 
 	totals := []string{}
-	queue := make(chan *pinger.RequestInfo, len(uris))
-	pinger.DoParallelPings(uris, queue)
+	queue := make(chan *pinger.RequestInfo, len(config.URIs))
+	pinger.DoParallelPings(config.URIs, config.RandomDelayEnabled, queue)
 
 	buf := &bytes.Buffer{}
 
-	for i := 0; i < len(uris); i++ {
+	for i := 0; i < len(config.URIs); i++ {
 		info := <-queue
 
 		if info.Error != nil {

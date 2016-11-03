@@ -46,7 +46,7 @@ func TestHTTPErrors(t *testing.T) {
 func doPingTest(uris map[string]string) []error {
 	queue := make(chan *RequestInfo, len(uris))
 
-	DoParallelPings(uris, queue)
+	DoParallelPings(uris, false, queue)
 	var errs []error
 	for i := 0; i < len(uris); i++ {
 		info := <-queue

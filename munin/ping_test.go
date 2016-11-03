@@ -1,9 +1,16 @@
 package munin
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/DigitalBackstage/munin-http-timing/config"
+)
 
 func TestEmptyURIList(t *testing.T) {
-	out, err := DoPing(map[string]string{})
+	config := config.Config{
+		URIs: map[string]string{},
+	}
+	out, err := DoPing(config)
 
 	if err == nil {
 		t.Error("Ping should error out when given no URIs.")

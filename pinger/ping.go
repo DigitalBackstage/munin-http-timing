@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptrace"
-	"os"
 	"time"
 )
 
@@ -83,11 +82,11 @@ func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 
 // DoParallelPings calls ping on the given URIs and pushes the result in the
 // given queue
-func DoParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
+func DoParallelPings(uris map[string]string, randomDelayEnabled bool, queue chan<- *RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
 			// Avoid sending all requests at the exact same time
-			if randomDelayEnabled() {
+			if randomDelayEnabled {
 				time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
 			}
 
@@ -96,10 +95,4 @@ func DoParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
 			queue <- info
 		}(name, uri)
 	}
-}
-
-// RandomDelayEnabled returns true if we should delay parallel requests by a
-// random delay
-func randomDelayEnabled() bool {
-	return os.Getenv("RANDOM_DELAY") == "1"
 }

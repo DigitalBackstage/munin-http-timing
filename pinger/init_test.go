@@ -52,10 +52,6 @@ func (p *Pings) Push(uri string) {
 	p.pings = append(p.pings, uri)
 }
 
-func init() {
-	os.Setenv("RANDOM_DELAY", "1")
-}
-
 func TestMain(m *testing.M) {
 	TestServerPings = NewPings()
 	closer, port, err := SetupTestServer(TestServerPings)
