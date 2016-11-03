@@ -1,9 +1,13 @@
-package main
+package munin
 
 import (
 	"errors"
+	"log"
+	"os"
 	"strings"
 )
+
+var stdout = log.New(os.Stdout, "", 0)
 
 // Field order for graph_order and field descriptions
 // This is also hard-coded in Ping

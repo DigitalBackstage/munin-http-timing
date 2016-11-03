@@ -1,13 +1,6 @@
-package main
+package munin
 
 import "testing"
-
-func TestConfig(t *testing.T) {
-	err := DoConfig(map[string]string{"test": TestServerBaseURI + "/panic"})
-	if err != nil {
-		t.Fatal(err)
-	}
-}
 
 func TestConfigWithoutURIs(t *testing.T) {
 	err := DoConfig(map[string]string{})

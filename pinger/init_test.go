@@ -1,9 +1,8 @@
-package main
+package pinger
 
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -53,13 +52,6 @@ func (p *Pings) Push(uri string) {
 	p.pings = append(p.pings, uri)
 }
 
-func init() {
-	stdout.SetOutput(ioutil.Discard)
-	stderr.SetOutput(ioutil.Discard)
-
-	os.Setenv("RANDOM_DELAY", "1")
-}
-
 func TestMain(m *testing.M) {
 	TestServerPings = NewPings()
 	closer, port, err := SetupTestServer(TestServerPings)
@@ -74,7 +66,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// SetupTestServerTest runs an HTTP serveur for testing with the following routes:
+// SetupTestServerTest runs an HTTP server for testing with the following routes:
 // - /error/:code to return the HTTP error given by :code
 // - /panic to call panic()
 // - anything else to append the RequestURI to the given pings slice
@@ -83,6 +75,8 @@ func SetupTestServer(pings *Pings) (srvCloser io.Closer, port int, err error) {
 		status, _ := strconv.Atoi(filepath.Base(req.RequestURI))
 
 		if status >= 300 && status < 400 {
+			// As we should never follow redirects, redirecting to /panic gives
+			// us the test for free
 			w.Header().Add("Location", fmt.Sprintf("http://127.0.0.1:%d/panic", port))
 		}
 
