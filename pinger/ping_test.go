@@ -49,7 +49,6 @@ func TestHTTPErrors(t *testing.T) {
 	if out == "" {
 		t.Error("Empty response from DoPing.")
 	}
-
 }
 
 func TestEmptyURIList(t *testing.T) {

@@ -41,8 +41,8 @@ func NewRequestInfo() *RequestInfo {
 	return r
 }
 
-// IsOk returns true if the request succeeded
-func (t *RequestInfo) IsOk() bool {
+// isOk returns true if the request succeeded
+func (t *RequestInfo) isOk() bool {
 	return t.StatusCode < 400
 }
 
@@ -56,17 +56,17 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 	t.URI = uri
 }
 
-// Print prints the timings following the Munin multigraph protocol
+// String returns the timings following the Munin multigraph protocol
 // It prints the fields in a specific order, it must match the one in
 // graphOrder in config.go
-func (t *RequestInfo) String() string {
+func (t RequestInfo) String() string {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 
 	buf := &bytes.Buffer{}
 	fmt.Fprintf(buf, "multigraph timing.%s\n", t.Name)
 
-	if t.IsOk() {
+	if t.isOk() {
 		fmt.Fprintf(buf, "resolving.value %v\n", toMillisecond(t.Resolving))
 		fmt.Fprintf(buf, "connecting.value %v\n", toMillisecond(t.Connecting))
 		fmt.Fprintf(buf, "sending.value %v\n", toMillisecond(t.Sending))
@@ -83,6 +83,19 @@ func (t *RequestInfo) String() string {
 	fmt.Fprint(buf, "\n")
 
 	return buf.String()
+}
+
+// TotalString returns the <name>_total.value line for this RequestInfo
+func (t RequestInfo) TotalString() string {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
+
+	value := "U"
+	if t.isOk() {
+		value = fmt.Sprintf("%v", toMillisecond(t.Total))
+	}
+
+	return fmt.Sprintf("%s_total.value %v\n", t.Name, value)
 }
 
 // ConnectDone sets the connection time

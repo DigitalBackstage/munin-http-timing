@@ -25,7 +25,7 @@ func DoPing(uris map[string]string) (string, error) {
 		return "", errors.New("No URIs provided.")
 	}
 
-	totals := map[string]string{}
+	totals := []string{}
 	queue := make(chan *RequestInfo, len(uris))
 	doParallelPings(uris, queue)
 
@@ -35,17 +35,12 @@ func DoPing(uris map[string]string) (string, error) {
 		info := <-queue
 
 		fmt.Fprint(buf, info)
-
-		if info.IsOk() {
-			totals[info.Name] = fmt.Sprintf("%v", toMillisecond(info.Total))
-		} else {
-			totals[info.Name] = "U"
-		}
+		totals = append(totals, info.TotalString())
 	}
 
 	fmt.Fprint(buf, "multigraph timing\n")
-	for name, value := range totals {
-		fmt.Fprintf(buf, "%s_total.value %v\n", name, value)
+	for _, value := range totals {
+		fmt.Fprintf(buf, value)
 	}
 	fmt.Fprint(buf, "\n")
 
