@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DigitalBackstage/munin-http-timing/pinger"
+	"github.com/DigitalBackstage/munin-http-timing/munin"
 )
 
 var stdout = log.New(os.Stdout, "", 0)
@@ -31,12 +31,12 @@ func main() {
 		stderr.Print(usage())
 		os.Exit(1)
 	case len(os.Args) == 1:
-		out, err = pinger.DoPing(uris)
+		out, err = munin.DoPing(uris)
 		stdout.Print(out)
 	case os.Args[1] == "config":
-		err = DoConfig(uris)
+		err = munin.DoConfig(uris)
 		if dirtyConfig && err == nil {
-			out, err = pinger.DoPing(uris)
+			out, err = munin.DoPing(uris)
 		}
 	case os.Args[1] == "autoconf":
 		stdout.Println("no" +

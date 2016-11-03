@@ -1,8 +1,6 @@
 package pinger
 
 import (
-	"io/ioutil"
-	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -10,31 +8,26 @@ import (
 
 func TestPing(t *testing.T) {
 	TestServerPings.Purge()
-	out, err := DoPing(map[string]string{
+
+	errs := doPingTest(map[string]string{
 		"test1": TestServerBaseURI + "/test1",
 		"test2": TestServerBaseURI + "/test2",
 		"test3": "http://localhost:" + strconv.Itoa(TestServerPort) + "/test3",
 	})
 
-	if err != nil {
-		t.Error(err)
-	}
-	if out == "" {
-		t.Error("Empty response from DoPing.")
+	if len(errs) != 0 {
+		t.Error(errs)
 	}
 
 	expected := []string{"/test1", "/test2", "/test3"}
 	actual := TestServerPings.Sorted()
 	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("DoPing did not request the server, got %v expected %v.", actual, expected)
+		t.Errorf("DoParallelPings did not request the server, got %v expected %v.", actual, expected)
 	}
 }
 
 func TestHTTPErrors(t *testing.T) {
-	stderr.SetOutput(ioutil.Discard)
-	defer stderr.SetOutput(os.Stderr)
-
-	out, err := DoPing(map[string]string{
+	errs := doPingTest(map[string]string{
 		"err301": TestServerBaseURI + "/error/301",
 		"err302": TestServerBaseURI + "/error/302",
 		"err318": TestServerBaseURI + "/error/318",
@@ -43,24 +36,25 @@ func TestHTTPErrors(t *testing.T) {
 		"err500": TestServerBaseURI + "/error/500",
 	})
 
-	if err != nil {
-		t.Error(err)
-	}
-	if out == "" {
-		t.Error("Empty response from DoPing.")
+	if len(errs) != 6 {
+		t.Error("Should have 6 errors.")
+		t.Error(errs)
 	}
 }
 
-func TestEmptyURIList(t *testing.T) {
-	stderr.SetOutput(ioutil.Discard)
-	defer stderr.SetOutput(os.Stderr)
+// doPingTest pings a set of URIs and return the errors
+func doPingTest(uris map[string]string) []error {
+	queue := make(chan *RequestInfo, len(uris))
 
-	out, err := DoPing(map[string]string{})
+	DoParallelPings(uris, queue)
+	var errs []error
+	for i := 0; i < len(uris); i++ {
+		info := <-queue
 
-	if err == nil {
-		t.Error("Ping should error out when given no URIs.")
+		if info.Error != nil {
+			errs = append(errs, info.Error)
+		}
 	}
-	if out != "" {
-		t.Error("Should get empty response from DoPing.")
-	}
+
+	return errs
 }

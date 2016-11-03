@@ -13,6 +13,7 @@ type RequestInfo struct {
 	Name       string
 	URI        string
 	StatusCode int
+	Error      error
 
 	lock *sync.RWMutex
 

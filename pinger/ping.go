@@ -1,11 +1,8 @@
 package pinger
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httptrace"
@@ -13,39 +10,7 @@ import (
 	"time"
 )
 
-var stderr = log.New(os.Stderr, "", 0)
-
 const httpGetTimeout = time.Duration(20 * time.Second)
-
-// DoPing does the actual stats gathering (HTTP requests) and prints it for munin
-func DoPing(uris map[string]string) (string, error) {
-	rand.Seed(time.Now().Unix())
-
-	if len(uris) <= 0 {
-		return "", errors.New("No URIs provided.")
-	}
-
-	totals := []string{}
-	queue := make(chan *RequestInfo, len(uris))
-	doParallelPings(uris, queue)
-
-	buf := &bytes.Buffer{}
-
-	for i := 0; i < len(uris); i++ {
-		info := <-queue
-
-		fmt.Fprint(buf, info)
-		totals = append(totals, info.TotalString())
-	}
-
-	fmt.Fprint(buf, "multigraph timing\n")
-	for _, value := range totals {
-		fmt.Fprintf(buf, value)
-	}
-	fmt.Fprint(buf, "\n")
-
-	return buf.String(), nil
-}
 
 // ping gets an HTTP URL and returns the request timing information
 func ping(name, uri string) (*RequestInfo, error) {
@@ -74,15 +39,18 @@ func ping(name, uri string) (*RequestInfo, error) {
 	}
 
 	info.BodySize, err = getResponseBodyBodySize(response)
+	if err != nil {
+		return info, err
+	}
 
 	// Keep this _after_ fetching the whole body because Request.Do returns as
 	// soon as the headers are received.
 	info.RequestDone(response.StatusCode)
 
 	if info.StatusCode >= 400 {
-		stderr.Printf("Got a %d, unable to fetch %s\n", info.StatusCode, uri)
+		err = fmt.Errorf("Got a %d, unable to fetch %s\n", info.StatusCode, uri)
 	} else if info.StatusCode >= 300 && info.StatusCode < 400 {
-		stderr.Printf("Not following redirection given by %s\n", uri)
+		err = fmt.Errorf("Not following redirection given by %s\n", uri)
 	}
 
 	return info, err
@@ -113,7 +81,9 @@ func getHTTPTrace(info *RequestInfo) httptrace.ClientTrace {
 	}
 }
 
-func doParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
+// DoParallelPings calls ping on the given URIs and pushes the result in the
+// given queue
+func DoParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
 	for name, uri := range uris {
 		go func(name, uri string) {
 			// Avoid sending all requests at the exact same time
@@ -122,9 +92,7 @@ func doParallelPings(uris map[string]string, queue chan<- *RequestInfo) {
 			}
 
 			info, err := ping(name, uri)
-			if err != nil {
-				stderr.Println(err)
-			}
+			info.Error = err
 			queue <- info
 		}(name, uri)
 	}
