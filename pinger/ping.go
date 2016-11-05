@@ -37,6 +37,10 @@ func ping(name, uri, userAgent string) (*RequestInfo, error) {
 
 	info.RequestStart(name, uri)
 	response, err := client.Do(req)
+	if response != nil {
+		defer response.Body.Close()
+	}
+
 	if err != nil {
 		return info, err
 	}
