@@ -13,7 +13,9 @@ import (
 
 const httpGetTimeout = time.Duration(20 * time.Second)
 
-// ping gets an HTTP URL and returns the request timing information
+// ping performs an HTTP request and returns the timing information
+// If the request completes but fails (redirection or any error 4XX/5XX error)
+// the correct timing information will be returned along with an error message.
 func ping(name, uri, userAgent string) (*RequestInfo, error) {
 	var err error
 
@@ -57,7 +59,7 @@ func ping(name, uri, userAgent string) (*RequestInfo, error) {
 	if info.StatusCode >= 400 {
 		err = fmt.Errorf("Got a %d, unable to fetch %s\n", info.StatusCode, uri)
 	} else if info.StatusCode >= 300 && info.StatusCode < 400 {
-		err = fmt.Errorf("Not following redirection given by %s\n", uri)
+		err = fmt.Errorf("Not following %d redirection given by %s\n", info.StatusCode, uri)
 	}
 
 	return info, err

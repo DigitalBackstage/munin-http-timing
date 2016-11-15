@@ -15,7 +15,7 @@ import (
 
 var stderr = log.New(os.Stderr, "", 0)
 
-// DoPing does the actual stats gathering (HTTP requests) and prints it for munin
+// DoPing calls the pinger and prints the response for munin
 func DoPing(config config.Config) (string, error) {
 	rand.Seed(time.Now().Unix())
 
