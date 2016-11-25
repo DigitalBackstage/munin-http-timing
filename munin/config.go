@@ -42,7 +42,7 @@ func printMainGraph(uris map[string]string) {
 	p("graph_category network")
 	p("graph_args --base 1000 -l 0")
 	p("graph_scale no")
-	p("graph_info This graph show the timing of the different parts of an HTTP request in miliseconds.")
+	p("graph_info This graph shows the duration of the different parts of an HTTP request in miliseconds.")
 	p("graph_vlabel Time (ms)")
 	stdout.Printf("graph_order %s\n", strings.Join(graphOrder, " "))
 
