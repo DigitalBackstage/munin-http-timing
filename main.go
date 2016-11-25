@@ -29,19 +29,17 @@ func main() {
 		os.Exit(1)
 	case len(os.Args) == 1:
 		out, err = munin.DoPing(config)
-		stdout.Print(out)
 	case os.Args[1] == "config":
 		err = munin.DoConfig(config.URIs)
 		if config.ConfigAndPing && err == nil {
 			out, err = munin.DoPing(config)
 		}
 	case os.Args[1] == "autoconf":
-		stdout.Println("no" +
+		out = "no" +
 			" (This module is meant to run outside of the node hosting the URIs" +
-			" and is to be configured manually.)",
-		)
+			" and is to be configured manually.)\n"
 	case os.Args[1] == "version":
-		stdout.Println(version)
+		out = version + "\n"
 	}
 
 	if err != nil {
