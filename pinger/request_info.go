@@ -1,7 +1,6 @@
 package pinger
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -56,25 +55,14 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 	t.URI = uri
 }
 
+// Lock locks the RequestInfo mutex
 func (t *RequestInfo) Lock() {
 	t.lock.Lock()
 }
 
+// Unlock unlocks the RequestInfo mutex
 func (t *RequestInfo) Unlock() {
 	t.lock.Unlock()
-}
-
-// TotalString returns the <name>_total.value line for this RequestInfo
-func (t RequestInfo) TotalString() string {
-	t.lock.RLock()
-	defer t.lock.RUnlock()
-
-	value := "U"
-	if t.IsOk() {
-		value = fmt.Sprintf("%v", ToMillisecond(t.Total))
-	}
-
-	return fmt.Sprintf("%s_total.value %v\n", t.Name, value)
 }
 
 // ConnectDone sets the connection time
@@ -141,8 +129,4 @@ func (t *RequestInfo) DNSDone() {
 
 	t.dnsDone = time.Now()
 	t.Resolving = t.dnsDone.Sub(t.dnsStart)
-}
-
-func ToMillisecond(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
 }
