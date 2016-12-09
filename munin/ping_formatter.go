@@ -3,6 +3,7 @@ package munin
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/DigitalBackstage/munin-http-timing/pinger"
@@ -55,6 +56,8 @@ func toMillisecond(d time.Duration) int64 {
 }
 
 func formatMultigraph(requests []*pinger.RequestInfo, graphName string) string {
+	sort.Sort(requestByName(requests))
+
 	buf := &bytes.Buffer{}
 	for i := range requests {
 		fmt.Fprint(buf, formatRequestInfo(requests[i], graphName))
@@ -68,3 +71,9 @@ func formatMultigraph(requests []*pinger.RequestInfo, graphName string) string {
 
 	return buf.String()
 }
+
+type requestByName []*pinger.RequestInfo
+
+func (a requestByName) Len() int           { return len(a) }
+func (a requestByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a requestByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
