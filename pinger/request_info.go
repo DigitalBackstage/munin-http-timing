@@ -1,7 +1,6 @@
 package pinger
 
 import (
-	"bytes"
 	"fmt"
 	"sync"
 	"time"
@@ -42,8 +41,8 @@ func NewRequestInfo() *RequestInfo {
 	return r
 }
 
-// isOk returns true if the request succeeded
-func (t *RequestInfo) isOk() bool {
+// IsOk returns true if the request succeeded
+func (t *RequestInfo) IsOk() bool {
 	return t.StatusCode < 400
 }
 
@@ -57,33 +56,12 @@ func (t *RequestInfo) RequestStart(name, uri string) {
 	t.URI = uri
 }
 
-// String returns the timings following the Munin multigraph protocol
-// It prints the fields in a specific order, it must match the one in
-// graphOrder in config.go
-func (t RequestInfo) String() string {
-	t.lock.RLock()
-	defer t.lock.RUnlock()
+func (t *RequestInfo) Lock() {
+	t.lock.Lock()
+}
 
-	buf := &bytes.Buffer{}
-	fmt.Fprintf(buf, "multigraph timing.%s\n", t.Name)
-
-	if t.isOk() {
-		fmt.Fprintf(buf, "resolving.value %v\n", toMillisecond(t.Resolving))
-		fmt.Fprintf(buf, "connecting.value %v\n", toMillisecond(t.Connecting))
-		fmt.Fprintf(buf, "sending.value %v\n", toMillisecond(t.Sending))
-		fmt.Fprintf(buf, "waiting.value %v\n", toMillisecond(t.Waiting))
-		fmt.Fprintf(buf, "receiving.value %v\n", toMillisecond(t.Receiving))
-	} else {
-		fmt.Fprint(buf, "resolving.value U\n")
-		fmt.Fprint(buf, "connecting.value U\n")
-		fmt.Fprint(buf, "sending.value U\n")
-		fmt.Fprint(buf, "waiting.value U\n")
-		fmt.Fprint(buf, "receiving.value U\n")
-	}
-
-	fmt.Fprint(buf, "\n")
-
-	return buf.String()
+func (t *RequestInfo) Unlock() {
+	t.lock.Unlock()
 }
 
 // TotalString returns the <name>_total.value line for this RequestInfo
@@ -92,8 +70,8 @@ func (t RequestInfo) TotalString() string {
 	defer t.lock.RUnlock()
 
 	value := "U"
-	if t.isOk() {
-		value = fmt.Sprintf("%v", toMillisecond(t.Total))
+	if t.IsOk() {
+		value = fmt.Sprintf("%v", ToMillisecond(t.Total))
 	}
 
 	return fmt.Sprintf("%s_total.value %v\n", t.Name, value)
@@ -165,6 +143,6 @@ func (t *RequestInfo) DNSDone() {
 	t.Resolving = t.dnsDone.Sub(t.dnsStart)
 }
 
-func toMillisecond(d time.Duration) int64 {
+func ToMillisecond(d time.Duration) int64 {
 	return int64(d / time.Millisecond)
 }

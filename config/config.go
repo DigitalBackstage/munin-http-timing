@@ -20,6 +20,7 @@ type Config struct {
 	RandomDelayEnabled bool
 	ConfigAndPing      bool
 	UserAgent          string
+	Suffix             string
 }
 
 // NewConfigFromEnv creates and fills a Config from os.Environ()
@@ -38,6 +39,25 @@ func NewConfigFromEnv() Config {
 	config.ConfigAndPing = os.Getenv("MUNIN_CAP_DIRTYCONFIG") == "1"
 
 	return config
+}
+
+// SetSuffixFromArg0 set the graph name suffix from the program full name
+func (c *Config) SetSuffixFromArg0(arg0 string) {
+	splits := strings.Split(arg0, "_")
+	if len(splits) <= 1 {
+		c.Suffix = ""
+	} else {
+		c.Suffix = splits[len(splits)-1]
+	}
+}
+
+// GetGraphName returns the suffixed graph name
+func (c Config) GetGraphName() string {
+	if c.Suffix == "" {
+		return "timing"
+	}
+
+	return "timing_" + c.Suffix
 }
 
 // getURIsFromEnv returns a map associating names to urls from the process env vars

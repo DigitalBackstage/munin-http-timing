@@ -85,3 +85,51 @@ func TestNewConfigFromEnvWithZeroes(t *testing.T) {
 		t.Error("Expected UA to be defaulted to something.")
 	}
 }
+
+func TestSuffixFromArg0(t *testing.T) {
+	var config Config
+
+	config.SetSuffixFromArg0("/this/is/a/full/path")
+	if config.Suffix != "" {
+		t.Error("Expected empty string, got ", config.Suffix)
+	}
+
+	config.SetSuffixFromArg0("/this/is/a/full/path_with_suffix")
+	if config.Suffix != "suffix" {
+		t.Error("Expected 'suffix', got ", config.Suffix)
+	}
+
+	config.SetSuffixFromArg0("./rel/path/with_empty_suffix_")
+	if config.Suffix != "" {
+		t.Error("Expected empty string got ", config.Suffix)
+	}
+
+	config.SetSuffixFromArg0("./rel/path/with_suffix")
+	if config.Suffix != "suffix" {
+		t.Error("Expected 'suffix' got ", config.Suffix)
+	}
+}
+
+func TestGraphName(t *testing.T) {
+	var config Config
+
+	config.SetSuffixFromArg0("/this/is/a/full/path")
+	if config.GetGraphName() != "timing" {
+		t.Error("Expected 'timing', got ", config.GetGraphName())
+	}
+
+	config.SetSuffixFromArg0("/this/is/a/full/path_with_suffix")
+	if config.GetGraphName() != "timing_suffix" {
+		t.Error("Expected 'timing_suffix', got ", config.GetGraphName())
+	}
+
+	config.SetSuffixFromArg0("./rel/path/with_empty_suffix_")
+	if config.GetGraphName() != "timing" {
+		t.Error("Expected 'timing' got ", config.GetGraphName())
+	}
+
+	config.SetSuffixFromArg0("./rel/path/with_suffix")
+	if config.GetGraphName() != "timing_suffix" {
+		t.Error("Expected 'timing_suffix' got ", config.GetGraphName())
+	}
+}

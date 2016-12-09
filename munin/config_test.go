@@ -1,9 +1,14 @@
 package munin
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/DigitalBackstage/munin-http-timing/config"
+)
 
 func TestConfigWithoutURIs(t *testing.T) {
-	err := DoConfig(map[string]string{})
+	var config config.Config
+	err := DoConfig(config)
 	if err == nil {
 		t.Error("DoConfig should fail when given no URIs.")
 	}

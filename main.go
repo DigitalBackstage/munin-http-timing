@@ -20,6 +20,7 @@ func main() {
 	var out string
 
 	config := config.NewConfigFromEnv()
+	config.SetSuffixFromArg0(os.Args[0])
 
 	switch {
 	case len(os.Args) > 2:
@@ -30,7 +31,7 @@ func main() {
 	case len(os.Args) == 1:
 		out, err = munin.DoPing(config)
 	case os.Args[1] == "config":
-		err = munin.DoConfig(config.URIs)
+		err = munin.DoConfig(config)
 		if config.ConfigAndPing && err == nil {
 			out, err = munin.DoPing(config)
 		}
