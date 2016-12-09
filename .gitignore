@@ -1,4 +1,5 @@
 /.coverage-all
 /.coverage
 /munin-http-timing
-/release
+/munin-http-timing-*
+/*.tgz

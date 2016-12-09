@@ -4,12 +4,16 @@ all:
 clean:
 	git clean -fdX
 
-VERSION=$(shell git tag --points-at=HEAD):$(shell git rev-parse HEAD)
-BUILD=go build -ldflags '-s -w -X main.version=$(VERSION) -X config.version=$(VERSION)'
+VERSION=$(shell git tag --points-at=HEAD)
+FULLVERSION=$(VERSION):$(shell git rev-parse HEAD)
+BUILD=go build -ldflags '-s -w -X main.version=$(FULLVERSION) -X config.version=$(FULLVERSION)'
+BUILDDIR=munin-http-timing-$(VERSION)
 release:
-	mkdir -p release
-	GOOS=linux GOARCH=amd64 $(BUILD) -o release/http-timing_amd64
-	GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -o release/http-timing_arm
+	mkdir -p "$(BUILDDIR)"
+	GOOS=linux GOARCH=amd64 $(BUILD) -o "$(BUILDDIR)/http-timing_amd64"
+	GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -o "$(BUILDDIR)/http-timing_arm"
+	tar czf "munin-http-timing-$(VERSION).tgz" "$(BUILDDIR)"
+	rm -rf "$(BUILDDIR)"
 
 PACKAGES = $(shell find ./ -type d -not -path '*/\.*')
 cover:
