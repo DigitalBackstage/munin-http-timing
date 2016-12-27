@@ -2,7 +2,8 @@
 munin-node plugin to get detailed HTTP response timing information from
 requesting an URI.
 
-![rendered graph example](example.png)
+<a href="example_detail.png" ><img src="example_detail.png" alt="rendered detail graph example" width="250" /></a>
+<a href="example_multi.png" ><img src="example_multi.png" alt="rendered multi graph example" width="250" /></a>
 
 ## Usage
 Build using `make release`, link the executable from `releases/` in
